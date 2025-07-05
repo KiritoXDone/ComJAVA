@@ -34,7 +34,7 @@ jobs:
 
     - name: Download Launch4j
       run: |
-        curl -L -o launch4j.zip https://github.com/launch4j/launch4j/releases/download/3.50/launch4j-3.50-win32.zip
+        curl -L -o launch4j.zip https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download
         7z x launch4j.zip -olaunch4j
 
     - name: Create Launch4j config file
