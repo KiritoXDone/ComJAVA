@@ -1,0 +1,66 @@
+name: Build PortScanner Java to EXE
+
+on:
+  push:
+    paths:
+      - '**/Scanner.java'
+  pull_request:
+    paths:
+      - '**/Scanner.java'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Compile PortScanner.java
+      run: |
+        mkdir -p out
+        javac -d out PortScanner.java
+
+    - name: Package to JAR
+      run: |
+        jar --create --file=out/PortScanner.jar --main-class=PortScanner -C out PortScanner.class
+
+    - name: Download Launch4j
+      run: |
+        curl -L -o launch4j.zip https://github.com/launch4j/launch4j/releases/latest/download/launch4j-3.50-win32.zip
+        7z x launch4j.zip -olaunch4j
+
+    - name: Create Launch4j config file
+      run: |
+        echo ^<launch4jConfig^> > launch4j-config.xml
+        echo ^  ^<dontWrapJar^>false^</dontWrapJar^> >> launch4j-config.xml
+        echo ^  ^<headerType^>console^</headerType^> >> launch4j-config.xml
+        echo ^  ^<jar^>$(pwd)\\out\\PortScanner.jar^</jar^> >> launch4j-config.xml
+        echo ^  ^<outfile^>$(pwd)\\out\\PortScanner.exe^</outfile^> >> launch4j-config.xml
+        echo ^  ^<errTitle^>PortScanner Error^</errTitle^> >> launch4j-config.xml
+        echo ^  ^<cmdLine^>^</cmdLine^> >> launch4j-config.xml
+        echo ^  ^<chdir^>.^</chdir^> >> launch4j-config.xml
+        echo ^  ^<priority^>normal^</priority^> >> launch4j-config.xml
+        echo ^  ^<downloadUrl^>https://adoptium.net/^</downloadUrl^> >> launch4j-config.xml
+        echo ^  ^<supportUrl^>^</supportUrl^> >> launch4j-config.xml
+        echo ^  ^<manifest^>^</manifest^> >> launch4j-config.xml
+        echo ^  ^<icon^>^</icon^> >> launch4j-config.xml
+        echo ^  ^<versionInfo^>^</versionInfo^> >> launch4j-config.xml
+        echo ^</launch4jConfig^> >> launch4j-config.xml
+
+    - name: Convert JAR to EXE
+      run: |
+        .\launch4j\launch4jc.exe launch4j-config.xml
+
+    - name: Upload EXE artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PortScanner-exe
+        path: out/PortScanner.exe
