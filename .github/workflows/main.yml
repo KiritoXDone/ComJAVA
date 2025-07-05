@@ -22,8 +22,8 @@ jobs:
         distribution: 'graalvm'
         components: 'native-image'
 
-    - name: Compile PortScanner.java
-      run: javac PortScanner.java
+    - name: Compile PortScanner.java with UTF-8
+      run: javac -encoding UTF-8 PortScanner.java
 
     - name: Generate .exe using Native Image
       run: native-image -H:Name=PortScanner PortScanner
