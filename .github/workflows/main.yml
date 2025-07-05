@@ -26,7 +26,7 @@ jobs:
     - name: Compile PortScanner.java
       run: |
         mkdir -p out
-        javac -d out PortScanner.java
+        javac -encoding UTF-8 -d out PortScanner.java
 
     - name: Package to JAR
       run: |
