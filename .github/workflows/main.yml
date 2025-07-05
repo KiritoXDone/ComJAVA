@@ -3,10 +3,10 @@ name: Build PortScanner Java to EXE
 on:
   push:
     paths:
-      - '**/Scanner.java'
+      - '**/PortScanner.java'
   pull_request:
     paths:
-      - '**/Scanner.java'
+      - '**/PortScanner.java'
   workflow_dispatch:
 
 jobs:
