@@ -1,12 +1,6 @@
-name: Build PortScanner Java to EXE
+name: Build Java EXE
 
 on:
-  push:
-    paths:
-      - '**/PortScanner.java'
-  pull_request:
-    paths:
-      - '**/PortScanner.java'
   workflow_dispatch:
 
 jobs:
@@ -14,53 +8,42 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Set up JDK
+    - name: Set up Java
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
     - name: Compile PortScanner.java
-      run: |
-        mkdir -p out
-        javac -encoding UTF-8 -d out PortScanner.java
+      run: javac -encoding UTF-8 -d out PortScanner.java
 
-    - name: Package to JAR
-      run: |
-        jar --create --file=out/PortScanner.jar --main-class=PortScanner -C out PortScanner.class
+    - name: Package JAR
+      run: jar --create --file=PortScanner.jar --main-class=PortScanner -C out PortScanner.class
 
     - name: Download Launch4j
       run: |
         curl -L -o launch4j.zip https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download
         7z x launch4j.zip -olaunch4j
 
-    - name: Create Launch4j config file
+    - name: Create Launch4j config
       run: |
         echo ^<launch4jConfig^> > launch4j-config.xml
         echo ^  ^<dontWrapJar^>false^</dontWrapJar^> >> launch4j-config.xml
         echo ^  ^<headerType^>console^</headerType^> >> launch4j-config.xml
-        echo ^  ^<jar^>$(pwd)\\out\\PortScanner.jar^</jar^> >> launch4j-config.xml
-        echo ^  ^<outfile^>$(pwd)\\out\\PortScanner.exe^</outfile^> >> launch4j-config.xml
+        echo ^  ^<jar^>%CD%\PortScanner.jar^</jar^> >> launch4j-config.xml
+        echo ^  ^<outfile^>%CD%\PortScanner.exe^</outfile^> >> launch4j-config.xml
         echo ^  ^<errTitle^>PortScanner Error^</errTitle^> >> launch4j-config.xml
-        echo ^  ^<cmdLine^>^</cmdLine^> >> launch4j-config.xml
-        echo ^  ^<chdir^>.^</chdir^> >> launch4j-config.xml
-        echo ^  ^<priority^>normal^</priority^> >> launch4j-config.xml
-        echo ^  ^<downloadUrl^>https://adoptium.net/^</downloadUrl^> >> launch4j-config.xml
-        echo ^  ^<supportUrl^>^</supportUrl^> >> launch4j-config.xml
-        echo ^  ^<manifest^>^</manifest^> >> launch4j-config.xml
-        echo ^  ^<icon^>^</icon^> >> launch4j-config.xml
-        echo ^  ^<versionInfo^>^</versionInfo^> >> launch4j-config.xml
+        echo ^  ^<jarArgs^>^</jarArgs^> >> launch4j-config.xml
+        echo ^  ^<jre^>^</jre^> >> launch4j-config.xml
         echo ^</launch4jConfig^> >> launch4j-config.xml
 
-    - name: Convert JAR to EXE
-      run: |
-        .\launch4j\launch4jc.exe launch4j-config.xml
+    - name: Build EXE with Launch4j
+      run: .\launch4j\launch4jc.exe launch4j-config.xml
 
-    - name: Upload EXE artifact
+    - name: Upload EXE
       uses: actions/upload-artifact@v4
       with:
         name: PortScanner-exe
-        path: out/PortScanner.exe
+        path: PortScanner.exe
