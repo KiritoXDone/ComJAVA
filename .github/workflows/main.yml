@@ -22,6 +22,12 @@ jobs:
     - name: Package JAR
       run: jar --create --file=PortScanner.jar --main-class=PortScanner -C out PortScanner.class
 
+    - name: Upload JAR
+      uses: actions/upload-artifact@v4
+      with:
+        name: PortScanner-jar
+        path: PortScanner.jar
+
     - name: Download Launch4j
       run: |
         curl -L -o launch4j.zip https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download
@@ -41,9 +47,11 @@ jobs:
 
     - name: Build EXE with Launch4j
       run: .\launch4j\launch4jc.exe launch4j-config.xml
+      continue-on-error: true
 
-    - name: Upload EXE
+    - name: Upload EXE (if exists)
       uses: actions/upload-artifact@v4
       with:
         name: PortScanner-exe
         path: PortScanner.exe
+      continue-on-error: true
