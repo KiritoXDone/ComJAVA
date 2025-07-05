@@ -1,6 +1,10 @@
 name: Build Java EXE
 
 on:
+  push:
+    paths:
+      - '**.java'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
@@ -8,50 +12,24 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-    - name: Set up Java
-      uses: actions/setup-java@v4
+    - name: Set up GraalVM
+      uses: graalvm/setup-graalvm@v1
       with:
-        distribution: 'temurin'
         java-version: '17'
+        distribution: 'graalvm'
+        components: 'native-image'
 
     - name: Compile PortScanner.java
-      run: javac -encoding UTF-8 -d out PortScanner.java
+      run: javac PortScanner.java
 
-    - name: Package JAR
-      run: jar --create --file=PortScanner.jar --main-class=PortScanner -C out PortScanner.class
+    - name: Generate .exe using Native Image
+      run: native-image -H:Name=PortScanner PortScanner
 
-    - name: Upload JAR
-      uses: actions/upload-artifact@v4
+    - name: Upload PortScanner.exe
+      uses: actions/upload-artifact@v3
       with:
-        name: PortScanner-jar
-        path: PortScanner.jar
-
-    - name: Download Launch4j
-      run: |
-        curl -L -o launch4j.zip https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download
-        7z x launch4j.zip -olaunch4j
-
-    - name: Create Launch4j config
-      run: |
-        echo ^<launch4jConfig^> > launch4j-config.xml
-        echo ^  ^<dontWrapJar^>false^</dontWrapJar^> >> launch4j-config.xml
-        echo ^  ^<headerType^>console^</headerType^> >> launch4j-config.xml
-        echo ^  ^<jar^>%CD%\PortScanner.jar^</jar^> >> launch4j-config.xml
-        echo ^  ^<outfile^>%CD%\PortScanner.exe^</outfile^> >> launch4j-config.xml
-        echo ^  ^<errTitle^>PortScanner Error^</errTitle^> >> launch4j-config.xml
-        echo ^  ^<jarArgs^>^</jarArgs^> >> launch4j-config.xml
-        echo ^  ^<jre^>^</jre^> >> launch4j-config.xml
-        echo ^</launch4jConfig^> >> launch4j-config.xml
-
-    - name: Build EXE with Launch4j
-      run: .\launch4j\launch4jc.exe launch4j-config.xml
-      continue-on-error: true
-
-    - name: Upload EXE (if exists)
-      uses: actions/upload-artifact@v4
-      with:
-        name: PortScanner-exe
+        name: portscanner-exe
         path: PortScanner.exe
-      continue-on-error: true
