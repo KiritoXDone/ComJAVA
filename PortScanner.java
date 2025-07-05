@@ -21,38 +21,38 @@ public class PortScanner {
      */
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("===== 端口扫描器 - 基于Java的多线程TCP端口扫描工具 =====");
+        System.out.println("===== Port Scanner - Multi-threaded TCP Port Scanning Tool =====");
         
         try {
             // 获取用户输入的扫描参数
-            String startIp = getInput(scanner, "请输入起始IP地址:");
-            String endIp = getInput(scanner, "请输入终止IP地址(若只扫描单个IP，输入相同地址):");
-            int startPort = Integer.parseInt(getInput(scanner, "请输入起始端口:"));
-            int endPort = Integer.parseInt(getInput(scanner, "请输入终止端口:"));
-            onlyShowOpenPorts = Boolean.parseBoolean(getInput(scanner, "是否只显示开放端口(true/false):"));
+            String startIp = getInput(scanner, "Enter start IP address:");
+            String endIp = getInput(scanner, "Enter end IP address (if scanning a single IP, enter the same address):");
+            int startPort = Integer.parseInt(getInput(scanner, "Enter start port:"));
+            int endPort = Integer.parseInt(getInput(scanner, "Enter end port:"));
+            onlyShowOpenPorts = Boolean.parseBoolean(getInput(scanner, "Show only open ports (true/false):"));
             
             // 计算需要扫描的端口总数
             int totalPorts = endPort - startPort + 1;
             if (totalPorts <= 0) {
-                System.out.println("端口范围无效，请确保终止端口大于等于起始端口");
+                System.out.println("Invalid port range. Ensure the end port is greater than or equal to the start port.");
                 return;
             }
             
             // 计算需要启动的线程数量
             int threadCount = (int) Math.ceil((double) totalPorts / PORTS_PER_THREAD);
-            System.out.println("根据任务量，将开启 " + threadCount + " 个线程进行扫描...");
+            System.out.println("Based on the workload, " + threadCount + " threads will be started for scanning...");
             
             // 解析IP地址范围
             long[] ipRange = parseIpRange(startIp, endIp);
             if (ipRange == null) {
-                System.out.println("IP地址范围解析失败，请检查输入格式");
+                System.out.println("Failed to parse IP range. Check input format.");
                 return;
             }
             long startIpNum = ipRange[0];
             long endIpNum = ipRange[1];
             int ipCount = (int) (endIpNum - startIpNum + 1);
             
-            System.out.println("开始扫描 " + ipCount + " 个IP地址，端口范围: " + startPort + " - " + endPort);
+            System.out.println("Starting scan on " + ipCount + " IP addresses, port range: " + startPort + " - " + endPort);
             
             // 对每个IP地址进行端口扫描
             for (long ipNum = startIpNum; ipNum <= endIpNum; ipNum++) {
@@ -61,9 +61,9 @@ public class PortScanner {
             }
             
         } catch (NumberFormatException e) {
-            System.out.println("输入格式错误，请确保端口号为数字");
+            System.out.println("Input format error. Ensure port numbers are integers.");
         } catch (Exception e) {
-            System.out.println("扫描过程中发生错误: " + e.getMessage());
+            System.out.println("Error during scanning: " + e.getMessage());
             e.printStackTrace();
         } finally {
             scanner.close();
@@ -78,7 +78,7 @@ public class PortScanner {
      * @param threadCount 线程数量
      */
     private static void scanIpAddress(String ipAddress, int startPort, int endPort, int threadCount) {
-        System.out.println("\n开始扫描IP: " + ipAddress + " 的端口范围: " + startPort + " - " + endPort);
+        System.out.println("\nStarting scan on IP: " + ipAddress + ", port range: " + startPort + " - " + endPort);
         
         // 使用CountDownLatch等待所有线程完成
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -100,10 +100,10 @@ public class PortScanner {
         try {
             // 等待所有线程完成扫描
             latch.await();
-            System.out.println("IP " + ipAddress + " 扫描完成");
+            System.out.println("Scan completed for IP " + ipAddress);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            System.out.println("扫描被中断: " + e.getMessage());
+            System.out.println("Scan interrupted: " + e.getMessage());
         }
     }
     
@@ -138,7 +138,7 @@ public class PortScanner {
     private static long ipAddressToNum(String ipAddress) {
         String[] ipSegments = ipAddress.split("\\.");
         if (ipSegments.length != 4) {
-            throw new IllegalArgumentException("无效的IP地址格式");
+            throw new IllegalArgumentException("Invalid IP address format");
         }
         
         long result = 0;
@@ -168,7 +168,7 @@ public class PortScanner {
      * @return 用户输入的字符串
      */
     private static String getInput(Scanner scanner, String prompt) {
-        System.out.print(prompt);
+        System.out.print(prompt + " ");
         return scanner.nextLine().trim();
     }
     
@@ -207,12 +207,12 @@ public class PortScanner {
                         socket.connect(new InetSocketAddress(ipAddress, port), TIMEOUT);
                         
                         // 连接成功，端口开放
-                        String message = "主机: " + ipAddress + " - 端口 " + port + " 开放!";
+                        String message = "Host: " + ipAddress + " - Port " + port + " is open!";
                         System.out.println(message);
                     } catch (IOException e) {
                         // 连接失败，端口关闭或不可达
                         if (!onlyShowOpenPorts) {
-                            System.out.println("主机: " + ipAddress + " - 端口 " + port + " 关闭");
+                            System.out.println("Host: " + ipAddress + " - Port " + port + " is closed");
                         }
                     }
                 }
@@ -222,4 +222,4 @@ public class PortScanner {
             }
         }
     }
-}
+}    
